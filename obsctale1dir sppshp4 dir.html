@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Multiple Obstacle Game</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Multiple Obstacle Game</h1>
+    <p>Use arrow keys to move the rocket in all directions and avoid obstacles. Score: <span id="score">0</span></p>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Load rocket image
+        const rocketImage = new Image();
+        rocketImage.src = "rocket.png"; // Replace with your rocket image URL
+
+        // Load multiple obstacle images
+        const obstacleImages = [
+            "obstacle1.png", // Replace with your obstacle image URLs
+            "obstacle2.png",
+            "obstacle3.png"
+            // Add more obstacle image URLs as needed
+        ];
+
+        // Rocket properties
+        const rocket = {
+            x: canvas.width / 2,
+            y: canvas.height - 30,
+            width: 30,
+            height: 30,
+            speed: 5,
+            dx: 0,
+            dy: 0
+        };
+
+        // Array to store multiple obstacles
+        const obstacles = [];
+
+        // Game score
+        let score = 0;
+        const scoreElement = document.getElementById("score");
+
+        // Game over flag
+        let gameOver = false;
+
+        // Function to add a new obstacle
+        function addObstacle() {
+            const randomImageIndex = Math.floor(Math.random() * obstacleImages.length);
+            const newObstacle = {
+                x: Math.random() * (canvas.width - 30),
+                y: 0,
+                width: 30,
+                height: 30,
+                speed: 2,
+                image: new Image()
+            };
+            newObstacle.image.src = obstacleImages[randomImageIndex];
+            obstacles.push(newObstacle);
+        }
+
+        // Function to update game elements
+        function updateGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (gameOver) {
+                return;
+            }
+
+            rocket.x += rocket.dx;
+            rocket.y += rocket.dy;
+
+            if (rocket.x < 0) {
+                rocket.x = 0;
+            } else if (rocket.x + rocket.width > canvas.width) {
+                rocket.x = canvas.width - rocket.width;
+            }
+
+            if (rocket.y < 0) {
+                rocket.y = 0;
+            } else if (rocket.y + rocket.height > canvas.height) {
+                rocket.y = canvas.height - rocket.height;
+            }
+
+            // Draw the rocket image
+            ctx.drawImage(rocketImage, rocket.x, rocket.y, rocket.width, rocket.height);
+
+            obstacles.forEach(obstacle => {
+                obstacle.y += obstacle.speed;
+
+                if (
+                    rocket.x < obstacle.x + obstacle.width &&
+                    rocket.x + rocket.width > obstacle.x &&
+                    rocket.y < obstacle.y + obstacle.height &&
+                    rocket.y + rocket.height > obstacle.y
+                ) {
+                    gameOver = true;
+                    alert(`Game Over! Your score: ${score}. Refresh the page to play again.`);
+                    return;
+                }
+
+                // Draw the obstacle image
+                ctx.drawImage(obstacle.image, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+
+                if (obstacle.y > canvas.height) {
+                    score++;
+                    scoreElement.textContent = score;
+                    obstacles.splice(obstacles.indexOf(obstacle), 1);
+                }
+            });
+
+            if (Math.random() < 0.02) {
+                addObstacle();
+            }
+
+            requestAnimationFrame(updateGame);
+        }
+
+        document.addEventListener("keydown", function(event) {
+            if (gameOver) {
+                return;
+            }
+
+            if (event.key === "ArrowLeft") {
+                rocket.dx = -rocket.speed;
+            } else if (event.key === "ArrowRight") {
+                rocket.dx = rocket.speed;
+            } else if (event.key === "ArrowUp") {
+                rocket.dy = -rocket.speed;
+            } else if (event.key === "ArrowDown") {
+                rocket.dy = rocket.speed;
+            }
+        });
+
+        document.addEventListener("keyup", function(event) {
+            if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+                rocket.dx = 0;
+            } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                rocket.dy = 0;
+            }
+        });
+
+        rocketImage.onload = function() {
+            // Start the game loop after rocket image is loaded
+            updateGame();
+        };
+    </script>
+</body>
+
+</html>
